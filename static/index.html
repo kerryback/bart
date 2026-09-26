@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Bart Chatbot</title>
+<style>
+  :root {
+    --sky: #7fd4f5;
+    --sky-deep: #3aa9de;
+    --yellow: #ffd90f;
+    --yellow-deep: #e8be00;
+    --shirt: #f4571f;
+    --shorts: #2f6fb5;
+    --ink: #17202a;
+    --cloud: #ffffff;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--sky-deep);
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(255,255,255,.85) 0 3.2rem, transparent 3.4rem),
+      radial-gradient(circle at 19% 21%, rgba(255,255,255,.85) 0 2.4rem, transparent 2.6rem),
+      radial-gradient(circle at 82% 12%, rgba(255,255,255,.75) 0 2.8rem, transparent 3rem),
+      radial-gradient(circle at 89% 16%, rgba(255,255,255,.75) 0 2rem, transparent 2.2rem),
+      linear-gradient(to bottom, var(--sky), var(--sky-deep));
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: "Trebuchet MS", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem 1rem 2.5rem;
+  }
+
+  .room {
+    width: 100%;
+    max-width: 780px;
+  }
+
+  header {
+    background: var(--shirt);
+    border: 4px solid var(--ink);
+    border-bottom: none;
+    border-radius: 14px 14px 0 0;
+    padding: 1.1rem 1.35rem .95rem;
+  }
+
+  h1 {
+    margin: 0 0 .25rem;
+    font-size: clamp(1.9rem, 6vw, 2.9rem);
+    font-weight: 800;
+    letter-spacing: .01em;
+    color: var(--yellow);
+    -webkit-text-stroke: 2px var(--ink);
+    text-shadow: 3px 3px 0 var(--ink);
+  }
+
+  .tagline {
+    margin: 0;
+    font-size: .95rem;
+    font-weight: 600;
+    color: #fff5e8;
+  }
+
+  #log {
+    background: var(--cloud);
+    border-left: 4px solid var(--ink);
+    border-right: 4px solid var(--ink);
+    padding: 1.1rem;
+    height: 56vh;
+    min-height: 19rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+  }
+
+  .msg {
+    max-width: 82%;
+    padding: .6rem .85rem;
+    border: 3px solid var(--ink);
+    border-radius: 12px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .msg.bot {
+    align-self: flex-start;
+    background: var(--yellow);
+    border-bottom-left-radius: 3px;
+  }
+
+  .msg.user {
+    align-self: flex-end;
+    background: var(--shorts);
+    color: #fff;
+    border-bottom-right-radius: 3px;
+  }
+
+  .msg.error {
+    background: #ffe0e0;
+    color: #8b1a1a;
+  }
+
+  .who {
+    display: block;
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    opacity: .72;
+    margin-bottom: .18rem;
+  }
+
+  .pending { font-style: italic; opacity: .8; }
+
+  form {
+    display: flex;
+    gap: .55rem;
+    background: var(--yellow-deep);
+    border: 4px solid var(--ink);
+    border-radius: 0 0 14px 14px;
+    padding: .75rem;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    font: inherit;
+    font-size: 1rem;
+    padding: .62rem .8rem;
+    border: 3px solid var(--ink);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--ink);
+    min-width: 0;
+  }
+
+  input[type="text"]:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--shirt);
+  }
+
+  button {
+    font: inherit;
+    font-size: .95rem;
+    font-weight: 800;
+    padding: .62rem 1.15rem;
+    border: 3px solid var(--ink);
+    border-radius: 9px;
+    background: var(--shirt);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  button.ghost { background: #fff; color: var(--ink); }
+  button:hover:not(:disabled) { filter: brightness(1.08); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+
+  footer {
+    margin-top: .8rem;
+    text-align: center;
+    font-size: .74rem;
+    color: rgba(255, 255, 255, .8);
+  }
+
+  @media (max-width: 520px) {
+    .msg { max-width: 92%; }
+    button { padding: .62rem .8rem; }
+  }
+</style>
+</head>
+<body>
+<div class="room">
+  <header>
+    <h1>The Bart Chatbot</h1>
+    <p class="tagline">Ask him anything. He'll answer. He won't be impressed.</p>
+  </header>
+
+  <div id="log"></div>
+
+  <form id="form" autocomplete="off">
+    <input id="input" type="text" placeholder="What's up, man?" required>
+    <button id="send" type="submit">Send</button>
+    <button id="clear" class="ghost" type="button" title="Start over">Clear</button>
+  </form>
+
+  <footer>Not affiliated with The Simpsons or Fox. Just a kid with an attitude.</footer>
+</div>
+
+<script>
+  const log = document.getElementById("log");
+  const form = document.getElementById("form");
+  const input = document.getElementById("input");
+  const send = document.getElementById("send");
+  const clear = document.getElementById("clear");
+
+  const GREETING = "Yeah? What do you want, man.";
+
+  // Conversation history sent to the API on every turn (the server is stateless).
+  let history = [];
+
+  function bubble(role, text, isError = false) {
+    const div = document.createElement("div");
+    div.className = "msg " + (role === "user" ? "user" : "bot") + (isError ? " error" : "");
+    const who = document.createElement("span");
+    who.className = "who";
+    who.textContent = role === "user" ? "You" : "Bart";
+    div.append(who, document.createTextNode(text));
+    log.append(div);
+    log.scrollTop = log.scrollHeight;
+    return div;
+  }
+
+  function reset() {
+    history = [];
+    log.replaceChildren();
+    bubble("assistant", GREETING);
+    input.focus();
+  }
+
+  clear.addEventListener("click", reset);
+  reset();
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+
+    bubble("user", text);
+    history.push({ role: "user", content: text });
+    input.value = "";
+    input.disabled = send.disabled = true;
+
+    const pending = bubble("assistant", "…");
+    pending.classList.add("pending");
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || "Request failed.");
+
+      pending.classList.remove("pending");
+      pending.lastChild.textContent = data.reply;
+      history.push({ role: "assistant", content: data.reply });
+    } catch (err) {
+      pending.classList.remove("pending");
+      pending.classList.add("error");
+      pending.lastChild.textContent = "Ay caramba — " + err.message;
+      history.pop();  // drop the unanswered turn so the next request stays valid
+    } finally {
+      input.disabled = send.disabled = false;
+      input.focus();
+      log.scrollTop = log.scrollHeight;
+    }
+  });
+</script>
+</body>
+</html>
