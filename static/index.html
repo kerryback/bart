@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Bart Chatbot</title>
+<link rel="icon" type="image/png" href="/static/favicon.png">
 <style>
   :root {
     --sky: #7fd4f5;
@@ -43,11 +44,25 @@
   }
 
   header {
+    display: flex;
+    gap: 1.1rem;
+    align-items: center;
     background: var(--shirt);
     border: 4px solid var(--ink);
     border-bottom: none;
     border-radius: 14px 14px 0 0;
     padding: 1.1rem 1.35rem .95rem;
+  }
+
+  header img {
+    width: 104px;
+    height: 104px;
+    flex-shrink: 0;
+    object-fit: cover;
+    object-position: 50% 45%;
+    border: 4px solid var(--ink);
+    border-radius: 50%;
+    background: var(--yellow);
   }
 
   h1 {
@@ -166,10 +181,15 @@
     margin-top: .8rem;
     text-align: center;
     font-size: .74rem;
-    color: rgba(255, 255, 255, .8);
+    color: rgba(255, 255, 255, .85);
+    line-height: 1.5;
   }
 
+  footer a { color: #fff; }
+
   @media (max-width: 520px) {
+    header { flex-direction: column; text-align: center; gap: .7rem; }
+    header img { width: 88px; height: 88px; }
     .msg { max-width: 92%; }
     button { padding: .62rem .8rem; }
   }
@@ -178,8 +198,11 @@
 <body>
 <div class="room">
   <header>
-    <h1>The Bart Chatbot</h1>
-    <p class="tagline">Ask him anything. He'll answer. He won't be impressed.</p>
+    <img src="/static/bart.jpg" alt="Bart Simpson, painted as graffiti on a wall in Vienna">
+    <div>
+      <h1>The Bart Chatbot</h1>
+      <p class="tagline">Ask him anything. He'll answer. He won't be impressed.</p>
+    </div>
   </header>
 
   <div id="log"></div>
@@ -190,7 +213,12 @@
     <button id="clear" class="ghost" type="button" title="Start over">Clear</button>
   </form>
 
-  <footer>Not affiliated with The Simpsons or Fox. Just a kid with an attitude.</footer>
+  <footer>
+    Photo: <a href="https://commons.wikimedia.org/wiki/File:El_Barto.jpg">“El Barto”</a>, graffiti at
+    Seestadt station, Vienna, by Josef Laimer —
+    <a href="https://creativecommons.org/licenses/by/2.0">CC BY 2.0</a>.
+    Not affiliated with The Simpsons or Fox.
+  </footer>
 </div>
 
 <script>
